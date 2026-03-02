@@ -26,10 +26,14 @@ class Booking(BaseModel):
     id: int
 
     # confirm there user_id
-    user_id = int
+    user_id: int
 
     # confirm the seat they just booked
-    seat_id = int
+    seat_id: int
+
+class User(BaseModel):
+    id: int        
+    username: str   
 
     #we need this special Config so Pydantic can read the SQLAlchemy database object we hand to it. 
     class Config:
