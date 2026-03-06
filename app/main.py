@@ -31,16 +31,16 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
     #step A find the requested seat 
     seat = db.query(models.Seat).filter(models.Seat.id == booking.seat_id).first()
 
-    if not seat():
+    if not seat:
         raise HTTPException(status_code=404, detail="Seat not found. Sorry")
-    if seat.is_booked():
+    if seat.is_booked:
         raise HTTPException(status_code=400, detail="Seat is already booked")
 
     #step B optimistic looking
     #we attempt to update the seat, but only if the version matches we just read 
     #if 100 people clicks book at the same time , only the first one gets the matching version
 
-    updated_count = db.query(models.seat).filter(
+    updated_count = db.query(models.Seat).filter(
         models.Seat.id == seat.id,
         models.Seat.version == seat.version # the concurrency check
     ). update({
