@@ -17,6 +17,12 @@ def create_user(username: str, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
+
+@app.get("/seats/", response_model=list[schemas.Seat])
+def get_available_seats(db: Session = Depends(get_db)):
+    available_seats = db.query(models.Seat).filter(models.Seat.is_booked == False).all()
+    return available_seats
+
 @app.post("/seats/", response_model=schemas.Seat)
 def create_seat(seat: schemas.SeatBase, db: Session = Depends(get_db)):
     #create a new seat in db
