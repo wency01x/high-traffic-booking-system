@@ -66,3 +66,32 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
     db.commit()
     db.refresh(new_booking)
     return new_booking
+
+
+@app.get("/bookings/{user_id}", response_model=list[schemas.Booking])
+def get_user_bookings(user_id: int, db: Session = Depends(get_db)):
+    bookings = db.query(models.Booking).filter(models.Booking.user_id == user_id).all()
+
+    if not bookings:
+        raise HTTPException(status_code=404, detail="No bookings found for this user.")
+    return bookings
+
+@app.delete("/bookings/{user_id}")
+def cancel_booking(booking_id: int, db: Session = Depends(get_db)):
+    #step A find the ticket booking
+    booking = db.query(models.Booking).filter(models.Booking.id == booking_id).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found.")
+    
+    #step B find the seat attached to this booking and make it available again
+    seat = db.query(models.Seat).filter(models.Seat.id == booking.seat_id).first()
+    if seat:
+        seat.is_booked = False
+    
+    #Step C Delete the ticket and save changes
+    db.delete(booking)
+    db.commit()
+
+    return {"message": f"Booking {booking_id} cancelled successfully. Seat is now avaiable."}
+    
