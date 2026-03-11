@@ -11,3 +11,9 @@ __pycache__/
 
 venv/
 __pycache__/
+
+
+# Editor custom settings
+.vscode/
+.pyre_configuration
+pyrightconfig.json
