@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from datetime import datetime
+from typing import Optional
 
 class SeatBase(BaseModel):
     seat_number: str
@@ -36,5 +38,21 @@ class User(BaseModel):
     username: str   
 
     #we need this special Config so Pydantic can read the SQLAlchemy database object we hand to it. 
+    class Config:
+        from_attributes = True
+
+class BookingBase(BaseModel):
+    user_id: int
+    seat_id: int
+         # This defines the exact data a user MUST send us in their API request to book a seat.
+class BookingCreate(BookingBase):
+    pass # didn't ask user for booking id bc db automatically generates it
+
+# the full receipt we send back to the user
+class Booking(BookingBase):
+    id: int
+    status: str
+    expires_at: Optional[datetime] = None
+
     class Config:
         from_attributes = True
