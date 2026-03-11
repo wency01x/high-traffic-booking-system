@@ -81,7 +81,7 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
         raise HTTPException(status_code=400, detail="Seat is currently on hold by another user. Check back in 5 minutes!")
     
     #5min countdown timer
-    expiration_time = datetime.now(timezone.utc) + timedelta(minutes=1)
+    expiration_time = datetime.now(timezone.utc) + timedelta(minutes=5)
     #create the pending ticket
     new_booking = models.Booking(
         user_id=booking.user_id,
