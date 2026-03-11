@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from app.database import Base
+from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
@@ -23,3 +24,9 @@ class Booking(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     seat_id = Column(Integer, ForeignKey("seats.id"), unique=True)
+
+    status = Column(String, default="PENDING")
+    expires_at = Column(DateTime)
+
+    user = relationship("User")
+    seat = relationship("Seat")
