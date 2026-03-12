@@ -11,34 +11,26 @@ const HOLD_DURATION_MS = 5 * 60 * 1000;
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('boxoffice');
-  
   const [seats, setSeats] = useState<Seat[]>([]);
-  
   const [cart, setCart] = useState<CartItem | null>(null);
-  
-  const [history, setHistory] = useState<HistoryItem[]>([
-    { id: 'TXN-8921', seatId: 'C5', date: 'Oct 24, 2023', status: 'BOOKED' },
-    { id: 'TXN-8314', seatId: 'E2', date: 'Oct 12, 2023', status: 'CANCELED' },
-  ]);
-
   const [seatToConfirm, setSeatToConfirm] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  
+  // FIX: Initializing with an EMPTY array removes the "ghost" bookings!
+  const [history, setHistory] = useState<HistoryItem[]>([]);
 
-// 2. THE SURGERY: Fetch real data from your FastAPI Backend
+  // API SYNC: Fetch real data from FastAPI
   useEffect(() => {
     const fetchSeats = async () => {
       try {
         const response = await fetch('http://127.0.0.1:8001/seats/');
         if (response.ok) {
           const data = await response.json();
-          
-          // --- THE FIX: Map Python's dictionary to React's dictionary ---
           const formattedSeats = data.map((seat: any) => ({
-            id: seat.seat_number, // Map "A1" to the React ID
-            status: seat.is_booked ? 'booked' : 'available' // Translate True/False to words
+            id: seat.seat_number,
+            status: seat.is_booked ? 'booked' : 'available'
           }));
 
-          // Sort them alphabetically and numerically so the grid looks perfect (A1, A2, B1...)
           formattedSeats.sort((a: any, b: any) => 
             a.id.localeCompare(b.id, undefined, { numeric: true })
           );
@@ -50,10 +42,7 @@ export default function App() {
       }
     };
 
-    // Run once immediately when the app loads
     fetchSeats();
-
-    // Setup a 3-second heartbeat to keep the grid synced with the database
     const interval = setInterval(fetchSeats, 3000);
     return () => clearInterval(interval);
   }, []);
@@ -66,40 +55,25 @@ export default function App() {
     }, 4000);
   }, []);
 
-  const openConfirmModal = (id: string) => {
-    setSeatToConfirm(id);
-  };
+  const openConfirmModal = (id: string) => setSeatToConfirm(id);
+  const closeConfirmModal = () => setSeatToConfirm(null);
 
-  const closeConfirmModal = () => {
-    setSeatToConfirm(null);
-  };
-
-  // NOTE: This is still updating locally. We will wire this to the backend next!
   const confirmSeatSelection = () => {
     if (!seatToConfirm) return;
     const id = seatToConfirm;
     
     setSeats(prev => prev.map(s => {
-      if (s.id === cart?.seatId && s.status === 'pending') {
-        return { ...s, status: 'available' };
-      }
-      if (s.id === id) {
-        return { ...s, status: 'pending' };
-      }
+      if (s.id === cart?.seatId && s.status === 'pending') return { ...s, status: 'available' };
+      if (s.id === id) return { ...s, status: 'pending' };
       return s;
     }));
     
-    setCart({
-      seatId: id,
-      endTime: Date.now() + HOLD_DURATION_MS
-    });
-    
+    setCart({ seatId: id, endTime: Date.now() + HOLD_DURATION_MS });
     closeConfirmModal();
     setActiveTab('mytickets');
     showToast('success', 'Seat On Hold', `Seat ${id} reserved for 5 minutes.`);
   };
 
-  // NOTE: Still local. Will wire next.
   const payCart = () => {
     if(!cart) return;
     const seatId = cart.seatId;
@@ -117,7 +91,6 @@ export default function App() {
     showToast('success', 'Payment Successful', `Ticket for seat ${seatId} confirmed.`);
   };
 
-  // NOTE: Still local. Will wire next.
   const releaseCart = (isExpired = false) => {
     if(!cart) return;
     const seatId = cart.seatId;
@@ -132,10 +105,7 @@ export default function App() {
     }, ...prev]);
 
     setCart(null);
-    
-    if (isExpired) {
-      showToast('danger', 'Hold Expired', `Seat ${seatId} has been released back to public.`);
-    }
+    if (isExpired) showToast('danger', 'Hold Expired', `Seat ${seatId} has been released.`);
   };
 
   const handleUpdateSeatStatus = (seatId: string, isBooked: boolean) => {
@@ -145,9 +115,7 @@ export default function App() {
   useEffect(() => {
     if (!cart) return;
     const timer = setInterval(() => {
-      if (cart.endTime <= Date.now()) {
-         releaseCart(true);
-      }
+      if (cart.endTime <= Date.now()) releaseCart(true);
     }, 1000);
     return () => clearInterval(timer);
   }, [cart]);
