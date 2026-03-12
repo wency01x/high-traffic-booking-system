@@ -40,7 +40,7 @@ This project implements a modern **Three-Tier Architecture** (Client -> API -> D
 Open your first terminal and run the following commands:
 ```bash
 # Clone the repository
-git clone [https://github.com/yourusername/booking-system.git](https://github.com/yourusername/booking-system.git)
+git clone [https://github.com/wency01x/booking-system.git](https://github.com/wency01x/booking-system.git)
 cd booking-system
 
 # Activate your virtual environment
@@ -52,4 +52,5 @@ pip install -r requirements.txt
 
 # Start the FastAPI server (runs on Port 8001)
 uvicorn app.main:app --reload --port 8001
+
 
