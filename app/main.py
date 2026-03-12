@@ -4,11 +4,21 @@ from sqlalchemy.orm import Session
 from app.database import engine, get_db, SessionLocal   
 from app import models, schemas
 from datetime import datetime, timedelta, timezone
+from fastapi.middleware.cors import CORSMiddleware
 
 #create the table in the database
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
+
 
 async def released_expired_seats():
     while True:
