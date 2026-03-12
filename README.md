@@ -7,7 +7,7 @@ This project implements a modern **Three-Tier Architecture** (Client -> API -> D
 
 * **Concurrency Control (Pessimistic Locking):** When a user selects a seat, the system immediately locks it with a `PENDING` status. This strictly prevents any other user from interacting with or booking that specific seat during the checkout phase.
 * **State Management & Timers:** Tickets are held in the user's cart for a strict 5-minute checkout window before expiring.
-* **Asynchronous Background Worker (The Janitor):** A parallel `asyncio` task continuously polls the PostgreSQL database to detect abandoned carts. It automatically releases expired seats back to the `AVAILABLE` pool without blocking or slowing down the main API loop.
+* **Asynchronous Background Worker (Cleaner):** A parallel `asyncio` task continuously polls the PostgreSQL database to detect abandoned carts. It automatically releases expired seats back to the `AVAILABLE` pool without blocking or slowing down the main API loop.
 
 ## Tech Stack
 
@@ -52,3 +52,4 @@ pip install -r requirements.txt
 
 # Start the FastAPI server (runs on Port 8001)
 uvicorn app.main:app --reload --port 8001
+
