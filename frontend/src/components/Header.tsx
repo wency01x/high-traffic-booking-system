@@ -14,7 +14,7 @@ export function Header({ activeTab, setActiveTab, hasCart }: HeaderProps) {
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-sm bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
             <iconify-icon icon="solar:ticket-linear" class="text-emerald-400 text-base sm:text-lg"></iconify-icon>
           </div>
-          <span className="font-space-grotesk font-medium tracking-tight text-base sm:text-lg text-white">Lumière VIP</span>
+          <span className="font-space-grotesk font-medium tracking-tight text-base sm:text-lg text-white">Cynema VIP</span>
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4">
