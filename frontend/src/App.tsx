@@ -9,38 +9,54 @@ import type { Seat, CartItem, HistoryItem, ToastMessage } from './types';
 
 const HOLD_DURATION_MS = 5 * 60 * 1000;
 
-function generateInitialSeats(): Seat[] {
-  const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
-  const cols = 8;
-  const initialSeats: Seat[] = [];
-  
-  rows.forEach(r => {
-    for(let i=1; i<=cols; i++) {
-        const id = `${r}${i}`;
-        let initialStatus: Seat['status'] = 'available';
-        
-        if (id === 'D4') initialStatus = 'pending'; 
-        else if (Math.random() < 0.15) initialStatus = 'booked';
-        else if (Math.random() > 0.88) initialStatus = 'pending'; 
-        
-        initialSeats.push({ id, status: initialStatus });
-    }
-  });
-  return initialSeats;
-}
-
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('boxoffice');
-  const [seats, setSeats] = useState<Seat[]>(generateInitialSeats);
-  const [cart, setCart] = useState<CartItem | null>({ seatId: 'D4', endTime: Date.now() + (4 * 60 * 1000 + 45 * 1000) });
+  
+  const [seats, setSeats] = useState<Seat[]>([]);
+  
+  const [cart, setCart] = useState<CartItem | null>(null);
+  
   const [history, setHistory] = useState<HistoryItem[]>([
     { id: 'TXN-8921', seatId: 'C5', date: 'Oct 24, 2023', status: 'BOOKED' },
     { id: 'TXN-8314', seatId: 'E2', date: 'Oct 12, 2023', status: 'CANCELED' },
-    { id: 'TXN-7190', seatId: 'B8', date: 'Sep 29, 2023', status: 'BOOKED' },
   ]);
 
   const [seatToConfirm, setSeatToConfirm] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+// 2. THE SURGERY: Fetch real data from your FastAPI Backend
+  useEffect(() => {
+    const fetchSeats = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8001/seats/');
+        if (response.ok) {
+          const data = await response.json();
+          
+          // --- THE FIX: Map Python's dictionary to React's dictionary ---
+          const formattedSeats = data.map((seat: any) => ({
+            id: seat.seat_number, // Map "A1" to the React ID
+            status: seat.is_booked ? 'booked' : 'available' // Translate True/False to words
+          }));
+
+          // Sort them alphabetically and numerically so the grid looks perfect (A1, A2, B1...)
+          formattedSeats.sort((a: any, b: any) => 
+            a.id.localeCompare(b.id, undefined, { numeric: true })
+          );
+          
+          setSeats(formattedSeats);
+        }
+      } catch (error) {
+        console.error("Failed to connect to the Python backend:", error);
+      }
+    };
+
+    // Run once immediately when the app loads
+    fetchSeats();
+
+    // Setup a 3-second heartbeat to keep the grid synced with the database
+    const interval = setInterval(fetchSeats, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const showToast = useCallback((type: 'success' | 'danger', title: string, message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -58,6 +74,7 @@ export default function App() {
     setSeatToConfirm(null);
   };
 
+  // NOTE: This is still updating locally. We will wire this to the backend next!
   const confirmSeatSelection = () => {
     if (!seatToConfirm) return;
     const id = seatToConfirm;
@@ -82,6 +99,7 @@ export default function App() {
     showToast('success', 'Seat On Hold', `Seat ${id} reserved for 5 minutes.`);
   };
 
+  // NOTE: Still local. Will wire next.
   const payCart = () => {
     if(!cart) return;
     const seatId = cart.seatId;
@@ -99,6 +117,7 @@ export default function App() {
     showToast('success', 'Payment Successful', `Ticket for seat ${seatId} confirmed.`);
   };
 
+  // NOTE: Still local. Will wire next.
   const releaseCart = (isExpired = false) => {
     if(!cart) return;
     const seatId = cart.seatId;
@@ -123,7 +142,6 @@ export default function App() {
     setSeats((prev) => prev.map(s => s.id === seatId ? { ...s, status: isBooked ? 'booked' : 'available' } : s));
   };
 
-  // Needed in case cart timer expires implicitly
   useEffect(() => {
     if (!cart) return;
     const timer = setInterval(() => {
