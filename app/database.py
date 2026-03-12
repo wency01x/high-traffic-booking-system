@@ -1,7 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+from dotenv import load_dotenv
+import os
 
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:jhoseryl@localhost:5433/booking_db"
+load_dotenv()
+
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not SQLALCHEMY_DATABASE_URL:
+    raise ValueError("🚨 DATABASE_URL is missing! Check your .env file.")
+
 # create the engine
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
