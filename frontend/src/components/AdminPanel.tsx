@@ -2,16 +2,13 @@ import { useState } from 'react';
 
 interface AdminPanelProps {
   onShowToast: (type: 'success' | 'danger', title: string, message: string) => void;
-  // Made optional so App.tsx doesn't break, but we don't need to use it here anymore!
   onUpdateSeatStatus?: (seatId: string, isBooked: boolean) => void; 
 }
 
 export function AdminPanel({ onShowToast }: AdminPanelProps) {
-  // States for creating a User
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
-  // States for creating a Seat
   const [seatIdInput, setSeatIdInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -52,7 +49,8 @@ export function AdminPanel({ onShowToast }: AdminPanelProps) {
       const response = await fetch('http://127.0.0.1:8001/seats/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: seatIdInput.toUpperCase() }) 
+        // THE FIX: Changed 'id' to 'seat_number'
+        body: JSON.stringify({ seat_number: seatIdInput.toUpperCase() }) 
       });
 
       if (response.ok) {
@@ -66,7 +64,7 @@ export function AdminPanel({ onShowToast }: AdminPanelProps) {
     }
   };
 
-  // --- GOD MODE: Auto-Generate the entire theater ---
+  // Auto-Generate the entire theater
   const handleGenerateTheater = async () => {
     setIsGenerating(true);
     const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -80,7 +78,8 @@ export function AdminPanel({ onShowToast }: AdminPanelProps) {
           const res = await fetch('http://127.0.0.1:8001/seats/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: `${r}${i}` })
+            // THE FIX: Changed 'id' to 'seat_number'
+            body: JSON.stringify({ seat_number: `${r}${i}` })
           });
           if (res.ok) successCount++;
         } catch (e) {
