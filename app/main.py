@@ -55,21 +55,10 @@ async def released_expired_seats():
 async def startup_event():
     asyncio.create_task(released_expired_seats())
 
-
-@app.post("/users/", response_model=schemas.User) #add user to schemas
-def create_user(username: str, db: Session = Depends(get_db)):
-    #create a new user in the db
-    new_user = models.User(username=username)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
-
-
 @app.get("/seats/", response_model=list[schemas.Seat])
 def get_available_seats(db: Session = Depends(get_db)):
-    available_seats = db.query(models.Seat).filter(models.Seat.is_booked == False).all()
-    return available_seats
+    all_seats = db.query(models.Seat).all()
+    return all_seats
 
 @app.post("/seats/", response_model=schemas.Seat)
 def create_seat(seat: schemas.SeatBase, db: Session = Depends(get_db)):
@@ -94,7 +83,7 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
     expiration_time = datetime.now(timezone.utc) + timedelta(minutes=5)
     #create the pending ticket
     new_booking = models.Booking(
-        user_id=booking.user_id,
+        customer_name=booking.customer_name,
         seat_id=booking.seat_id,
         status="PENDING",
         expires_at=expiration_time
@@ -141,9 +130,9 @@ def pay_for_ticket(booking_id: int, db: Session = Depends(get_db)):
 
     return {"message": "Payment Successful! The seat is permanently yours."}
 
-@app.get("/bookings/{user_id}", response_model=list[schemas.Booking])
-def get_user_bookings(user_id: int, db: Session = Depends(get_db)):
-    bookings = db.query(models.Booking).filter(models.Booking.user_id == user_id).all()
+@app.get("/bookings/{customer_name}", response_model=list[schemas.Booking])
+def get_user_bookings(customer_name: int, db: Session = Depends(get_db)):
+    bookings = db.query(models.Booking).filter(models.Booking.customer_name == customer_name).all()
 
     if not bookings:
         raise HTTPException(status_code=404, detail="No bookings found for this user.")
