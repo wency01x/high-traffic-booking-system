@@ -7,9 +7,11 @@ interface MyTicketsProps {
   onRelease: () => void;
   onPay: () => void;
   onGoToBoxOffice: () => void;
+  guestName: string;
+  setGuestName: (name: string) => void;
 }
 
-export function MyTickets({ cart, history, onRelease, onPay, onGoToBoxOffice }: MyTicketsProps) {
+export function MyTickets({ cart, history, onRelease, onPay, onGoToBoxOffice, guestName, setGuestName }: MyTicketsProps) {
   const [timeLeft, setTimeLeft] = useState<string>('--:--');
   const [isUrgent, setIsUrgent] = useState(false);
 
@@ -61,6 +63,21 @@ export function MyTickets({ cart, history, onRelease, onPay, onGoToBoxOffice }: 
                   <span className={`font-mono text-2xl sm:text-3xl ${isUrgent ? 'text-rose-500' : 'text-amber-400'} font-medium tracking-tight leading-none tabular-nums`}>{timeLeft}</span>
                 </div>
               </div>
+              {/* Ticket Holder Name Input */}
+              <div className="mt-4 mb-1">
+                <label className="block text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-widest mb-1.5">
+                  Ticket Holder Name
+                </label>
+                <input 
+                  type="text" 
+                  id="guestNameInput"
+                  placeholder="e.g. Chel" 
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="w-full bg-[#111] border border-white/10 hover:border-white/20 rounded-sm px-4 py-3 text-sm text-white focus:border-emerald-500/50 outline-none transition-all placeholder:text-gray-600"
+                />
+              </div>
+              {/* END */}
               <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4">
                 <button onClick={() => onRelease()} className="flex-1 py-3 border border-white/10 hover:border-white/30 text-gray-300 hover:text-white transition-all text-[10px] sm:text-xs font-medium uppercase tracking-widest rounded-sm bg-white/5 hover:bg-white/10">Release</button>
                 <button onClick={() => onPay()} className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-black transition-all text-[10px] sm:text-xs font-medium uppercase tracking-widest rounded-sm flex items-center justify-center gap-2 group shadow-[0_0_20px_rgba(16,185,129,0.2)]">
