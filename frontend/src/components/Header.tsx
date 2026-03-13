@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 interface HeaderProps {
-  activeTab: string; // This will now receive location.pathname (e.g., "/" or "/admin")
+  activeTab: string;
   hasCart: boolean;
 }
 
