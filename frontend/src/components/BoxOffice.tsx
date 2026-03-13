@@ -30,7 +30,7 @@ export function BoxOffice({ seats, cart, onSeatClick }: BoxOfficeProps) {
               content = <span className="relative z-10">{seat.id}</span>;
             } else if (seat.status === 'pending') {
               if (isCartSeat) {
-                btnClass += 'border-emerald-500 text-emerald-300 bg-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)] -translate-y-0.5 sm:-translate-y-1';
+                btnClass += 'border-amber-500 text-amber-300 bg-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.2)] -translate-y-0.5 sm:-translate-y-1 cursor-not-allowed';
                 content = <span className="relative z-10">{seat.id}</span>;
               } else {
                 btnClass += 'border-amber-500/50 text-amber-400 bg-amber-500/10 cursor-not-allowed';
