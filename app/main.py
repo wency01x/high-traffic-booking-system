@@ -1,3 +1,5 @@
+import os
+import stripe
 import asyncio
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -5,11 +7,41 @@ from app.database import engine, get_db, SessionLocal
 from app import models, schemas
 from datetime import datetime, timedelta, timezone
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+from pydantic import BaseModel
+
+app = FastAPI()
+
+load_dotenv()
+STRIPE_KEY = os.getenv("STRIPE_API_KEY")
+
+stripe.api_key = STRIPE_KEY
+
+if not STRIPE_KEY:
+    raise RuntimeError("Stripe API key not found")
+
 
 #create the table in the database
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+
+class PaymentRequest(BaseModel):
+    amount: int # Amount in cents
+
+@app.post("/create-payment-intent")
+async def create_payment(request: PaymentRequest): # <--- Added 'request' here
+    try:
+        # We use request.amount from the frontend instead of hardcoding 1500
+        intent = stripe.PaymentIntent.create(
+            amount=request.amount, 
+            currency='usd',
+            automatic_payment_methods={'enabled': True},
+        )
+        # Return the secret!
+        return {"clientSecret": intent['client_secret']}
+    except Exception as e:
+        # Using a dictionary for the error ensures the frontend can read it
+        raise HTTPException(status_code=400, detail=str(e))
 
 app.add_middleware(
     CORSMiddleware,
