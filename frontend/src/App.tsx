@@ -18,6 +18,7 @@ export default function App() {
   
   // FIX: Initializing with an EMPTY array removes the "ghost" bookings!
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [guestName, setGuestName] = useState<string>('');
 
   // API SYNC: Fetch real data from FastAPI
   useEffect(() => {
@@ -58,53 +59,126 @@ export default function App() {
   const openConfirmModal = (id: string) => setSeatToConfirm(id);
   const closeConfirmModal = () => setSeatToConfirm(null);
 
-  const confirmSeatSelection = () => {
+const confirmSeatSelection = async () => {
     if (!seatToConfirm) return;
-    const id = seatToConfirm;
-    
-    setSeats(prev => prev.map(s => {
-      if (s.id === cart?.seatId && s.status === 'pending') return { ...s, status: 'available' };
-      if (s.id === id) return { ...s, status: 'pending' };
-      return s;
-    }));
-    
-    setCart({ seatId: id, endTime: Date.now() + HOLD_DURATION_MS });
-    closeConfirmModal();
-    setActiveTab('mytickets');
-    showToast('success', 'Seat On Hold', `Seat ${id} reserved for 5 minutes.`);
+    const id = seatToConfirm; // This is the string (e.g., "A1")
+
+    try {
+      // 1. Quick lookup: Find the integer Database ID for this seat
+      const seatsResponse = await fetch('http://127.0.0.1:8001/seats/');
+      const seatsData = await seatsResponse.json();
+      const realSeat = seatsData.find((s: any) => s.seat_number === id);
+
+      if (!realSeat) throw new Error("Seat not found in DB");
+
+      // 2. The Bridge! Tell Python to put this seat ON HOLD
+      const bookingResponse = await fetch('http://127.0.0.1:8001/booking/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seat_id: realSeat.id,      // Python gets the integer it wants
+          customer_name: "Pending"   // Placeholder until they pay
+        })
+      });
+
+      if (!bookingResponse.ok) {
+        const err = await bookingResponse.json();
+        alert(err.detail || "Seat is currently on hold by someone else!");
+        closeConfirmModal();
+        return;
+      }
+
+      // We get the new DB row back!
+      const bookingData = await bookingResponse.json();
+
+      // 3. Update the React UI (Your exact original code)
+      setSeats(prev => prev.map(s => {
+        if (s.id === cart?.seatId && s.status === 'pending') return { ...s, status: 'available' };
+        if (s.id === id) return { ...s, status: 'pending' };
+        return s;
+      }));
+      
+      // the bookingId to save to the cart
+      setCart({ 
+        seatId: id, 
+        endTime: Date.now() + HOLD_DURATION_MS, 
+        bookingId: bookingData.id 
+      });
+      
+      closeConfirmModal();
+      setActiveTab('mytickets');
+      showToast('success', 'Seat On Hold', `Seat ${id} reserved for 5 minutes.`);
+
+    } catch (error) {
+      console.error(error);
+      alert("Could not connect to the database to hold the seat.");
+      closeConfirmModal();
+    }
   };
 
-  const payCart = () => {
-    if(!cart) return;
-    const seatId = cart.seatId;
-    
-    setSeats(prev => prev.map(s => s.id === seatId ? { ...s, status: 'booked' } : s));
-    
-    setHistory(prev => [{
-      id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`,
-      seatId: seatId,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      status: 'BOOKED'
-    }, ...prev]);
+const payCart = async () => {
+    if (!cart) return;
 
-    setCart(null);
-    showToast('success', 'Payment Successful', `Ticket for seat ${seatId} confirmed.`);
+    if (!guestName.trim()) {
+      alert("Please enter a Ticket Holder Name!");
+      return;
+    }
+
+    try {
+      // Check your terminal! If it says 8001, change the 8000 below to 8001
+      const response = await fetch(`http://127.0.0.1:8001/bookings/${cart.bookingId}/pay`, {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Payment failed");
+      }
+
+      // Success! Update the UI
+      setSeats(prev => prev.map(s => s.id === cart.seatId ? { ...s, status: 'booked' } : s));
+      setHistory(prev => [{
+        id: `TXN-${cart.bookingId}`,
+        seatId: cart.seatId,
+        date: new Date().toLocaleDateString(),
+        status: 'BOOKED'
+      }, ...prev]);
+
+      setCart(null);
+      setGuestName('');
+      showToast('success', 'Confirmed!', `Seat ${cart.seatId} is yours, ${guestName}!`);
+
+    } catch (error: any) {
+      console.error(error);
+      alert(`Connection Error: ${error.message}`);
+    }
   };
 
-  const releaseCart = (isExpired = false) => {
+const releaseCart = async (isExpired = false) => {
     if(!cart) return;
     const seatId = cart.seatId;
-    
+
+    try {
+      // THE FIX: Tell Python to delete the pending booking and free the seat!
+      await fetch(`http://127.0.0.1:8001/bookings/${cart.bookingId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error("Failed to release seat in database", error);
+    }
+
+    // Update the UI
     setSeats(prev => prev.map(s => s.id === seatId ? { ...s, status: 'available' } : s));
-    
+
     setHistory(prev => [{
-      id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `TXN-${cart.bookingId}`, // Upgraded to use the real database ID!
       seatId: seatId,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       status: 'CANCELED'
     }, ...prev]);
 
     setCart(null);
+    setGuestName(''); // Wipes the name memory
     if (isExpired) showToast('danger', 'Hold Expired', `Seat ${seatId} has been released.`);
   };
 
@@ -136,6 +210,8 @@ export default function App() {
             onRelease={() => releaseCart(false)}
             onPay={payCart}
             onGoToBoxOffice={() => setActiveTab('boxoffice')}
+            guestName={guestName}
+            setGuestName={setGuestName}
           />
         )}
 
