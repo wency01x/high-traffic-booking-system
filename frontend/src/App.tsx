@@ -138,32 +138,22 @@ export default function App() {
     }
   };
 
-  const payCart = async () => {
+// --- START REPLACING HERE ---
+  const handlePaymentSuccess = useCallback(() => {
     if (!cart) return;
-    if (!guestName.trim()) {
-      alert("Please enter a Ticket Holder Name!");
-      return;
-    }
 
-    try {
-      const response = await fetch(`http://127.0.0.1:8001/bookings/${cart.bookingId}/pay`, { method: 'POST' });
-      if (!response.ok) throw new Error("Payment failed");
+    setHistory(prev => [{
+      id: `TXN-${cart.bookingId}`,
+      seatId: cart.seatId,
+      date: new Date().toLocaleDateString(),
+      status: 'BOOKED'
+    }, ...prev]);
 
-      setHistory(prev => [{
-        id: `TXN-${cart.bookingId}`,
-        seatId: cart.seatId,
-        date: new Date().toLocaleDateString(),
-        status: 'BOOKED'
-      }, ...prev]);
-
-      setCart(null);
-      setGuestName('');
-      showToast('success', 'Confirmed!', `Seat ${cart.seatId} is yours!`);
-      navigate('/'); // Take them back to box office after buying
-    } catch (error: any) {
-      alert(`Connection Error: ${error.message}`);
-    }
-  };
+    setCart(null);
+    setGuestName('');
+    showToast('success', 'Confirmed!', `Seat ${cart.seatId} is yours!`);
+    navigate('/'); 
+  }, [cart, navigate, showToast]);
 
   const releaseCart = async (isExpired = false) => {
     if(!cart) return;
@@ -183,19 +173,11 @@ export default function App() {
     setGuestName('');
     if (isExpired) showToast('danger', 'Hold Expired', `Seat ${seatId} released.`);
   };
-
-  const handleUpdateSeatStatus = (seatId: string, isBooked: boolean) => {
+  // --- STOP REPLACING HERE ---
+  
+const handleUpdateSeatStatus = (seatId: string, isBooked: boolean) => {
     setSeats((prev) => prev.map(s => s.id === seatId ? { ...s, status: isBooked ? 'booked' : 'available' } : s));
   };
-
-  useEffect(() => {
-    if (!cart) return;
-    const timer = setInterval(() => {
-      if (cart.endTime <= Date.now()) releaseCart(true);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [cart]);
-
   return (
     <div className="min-h-screen flex flex-col selection:bg-emerald-500/30 selection:text-emerald-200 overflow-x-hidden">
       {/* Header now gets location.pathname instead of activeTab */}
@@ -212,7 +194,7 @@ export default function App() {
               cart={cart}
               history={history}
               onRelease={() => releaseCart(false)}
-              onPay={payCart}
+              onPaymentSuccess={handlePaymentSuccess}
               onGoToBoxOffice={() => navigate('/')}
               guestName={guestName}
               setGuestName={setGuestName}
