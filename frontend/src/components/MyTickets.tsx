@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import type { CartItem, HistoryItem } from '../types';
+import { CheckoutForm } from './CheckOutForm';
 
 interface MyTicketsProps {
   cart: CartItem | null;
   history: HistoryItem[];
   onRelease: () => void;
-  onPay: () => void;
+  onPaymentSuccess: () => void;
   onGoToBoxOffice: () => void;
   guestName: string;
   setGuestName: (name: string) => void;
 }
 
-export function MyTickets({ cart, history, onRelease, onPay, onGoToBoxOffice, guestName, setGuestName }: MyTicketsProps) {
+export function MyTickets({ cart, history, onRelease, onPaymentSuccess, onGoToBoxOffice, guestName, setGuestName }: MyTicketsProps) {
   const [timeLeft, setTimeLeft] = useState<string>('--:--');
   const [isUrgent, setIsUrgent] = useState(false);
 
@@ -78,10 +79,20 @@ export function MyTickets({ cart, history, onRelease, onPay, onGoToBoxOffice, gu
                 />
               </div>
               {/* END */}
-              <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4">
-                <button onClick={() => onRelease()} className="flex-1 py-3 border border-white/10 hover:border-white/30 text-gray-300 hover:text-white transition-all text-[10px] sm:text-xs font-medium uppercase tracking-widest rounded-sm bg-white/5 hover:bg-white/10">Release</button>
-                <button onClick={() => onPay()} className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-black transition-all text-[10px] sm:text-xs font-medium uppercase tracking-widest rounded-sm flex items-center justify-center gap-2 group shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                  Pay Now <iconify-icon icon="solar:arrow-right-linear" class="group-hover:translate-x-1 transition-transform"></iconify-icon>
+              <div className="mt-6 flex flex-col gap-4">
+                {/* Stripe Payment Form */}
+                <CheckoutForm 
+                  amount={15} 
+                  bookingId={cart.bookingId}
+                  onSuccess={onPaymentSuccess} 
+                />
+
+                {/* Release Button moved below as a secondary option */}
+                <button 
+                  onClick={() => onRelease()} 
+                  className="w-full py-2 text-gray-500 hover:text-rose-400 transition-colors text-[10px] uppercase tracking-widest font-medium"
+                >
+                  Cancel Reservation & Release Seat
                 </button>
               </div>
             </>
