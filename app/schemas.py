@@ -18,8 +18,8 @@ class User(BaseModel):
         from_attributes = True
 
 class BookingBase(BaseModel):
-    user_id: int
     seat_id: int
+    customer_name: str
 
 # (Deleted the duplicates! Kept the good ones down here)
 class BookingCreate(BookingBase):
