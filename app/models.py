@@ -3,11 +3,6 @@ from app.database import Base
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
 
-class User(Base):
-    __tablename__ = "users"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(String, unique=True, index=True)
 
 class Seat(Base):
     __tablename__ = "seats"
@@ -23,11 +18,10 @@ class Booking(Base):
     __tablename__ = "bookings"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    seat_id: Mapped[int] = mapped_column(Integer, ForeignKey("seats.id"), unique=True)
+    seat_id: Mapped[int] = mapped_column(Integer, ForeignKey("seats.id"))
+    customer_name: Mapped[str] = mapped_column(String)
 
     status: Mapped[str] = mapped_column(String, default="PENDING")
     expires_at: Mapped[datetime] = mapped_column(DateTime)
 
-    user = relationship("User")
     seat = relationship("Seat")
