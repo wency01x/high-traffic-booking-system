@@ -10,6 +10,7 @@ export interface Seat {
 export interface CartItem {
   seatId: string;
   endTime: number;
+  bookingId: number;
 }
 
 export interface HistoryItem {
