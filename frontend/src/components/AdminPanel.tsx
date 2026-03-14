@@ -65,12 +65,13 @@ export function AdminPanel({ onShowToast }: AdminPanelProps) {
   };
 
   // Auto-Generate the entire theater
+// Auto-Generate the entire theater
   const handleGenerateTheater = async () => {
     setIsGenerating(true);
     const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
     let successCount = 0;
 
-    onShowToast('success', 'Building Theater...', 'Sending 48 requests to FastAPI...');
+    onShowToast('success', 'Building Theater...', 'Sending 48 requests (with safety pauses)...');
 
     for (const r of rows) {
       for (let i = 1; i <= 8; i++) {
@@ -78,10 +79,17 @@ export function AdminPanel({ onShowToast }: AdminPanelProps) {
           const res = await fetch('http://127.0.0.1:8001/seats/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // THE FIX: Changed 'id' to 'seat_number'
             body: JSON.stringify({ seat_number: `${r}${i}` })
           });
-          if (res.ok) successCount++;
+          
+          if (res.ok) {
+            successCount++;
+          }
+
+          // THE SPEED BUMP: Force the app to wait 50ms before creating the next seat
+          // This prevents the "SQLite Database is Locked" error.
+          await new Promise(resolve => setTimeout(resolve, 50)); 
+
         } catch (e) {
           console.error("Failed to create seat", `${r}${i}`);
         }
