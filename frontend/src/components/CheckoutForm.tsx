@@ -4,10 +4,10 @@ import { useState } from 'react';
 interface CheckoutFormProps {
   onSuccess: () => void;
   amount: number;
-  bookingId: number; // <--- Added this to track the ticket in your DB
+  bookingIds: number[]; 
 }
 
-export function CheckoutForm({ onSuccess, amount, bookingId }: CheckoutFormProps) {
+export function CheckoutForm({ onSuccess, amount, bookingIds }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -24,7 +24,7 @@ export function CheckoutForm({ onSuccess, amount, bookingId }: CheckoutFormProps
     if (!cardElement) return;
 
     try {
-      // 1. GET CLIENT SECRET FROM YOUR FASTAPI (Port 8001)
+      // 1. GET CLIENT SECRET FROM YOUR FASTAPI
       const response = await fetch('http://127.0.0.1:8001/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,16 +50,24 @@ export function CheckoutForm({ onSuccess, amount, bookingId }: CheckoutFormProps
         setErrorMessage(error.message || "Payment failed.");
       } else if (paymentIntent.status === 'succeeded') {
         
-        // 3. TELL YOUR BACKEND TO CONFIRM THE SEAT PERMANENTLY
-        const confirmRes = await fetch(`http://127.0.0.1:8001/bookings/${bookingId}/pay`, {
-          method: 'POST',
-        });
+        // 3. CONFIRM THE SEATS PERMANENTLY
+        try {
+          const confirmationPromises = bookingIds.map(id => 
+            fetch(`http://127.0.0.1:8001/bookings/${id}/pay`, {
+              method: 'POST',
+            })
+          );
 
-        if (confirmRes.ok) {
-          // 4. TRIGGER UI SUCCESS
-          await onSuccess(); 
-        } else {
-          setErrorMessage("Payment worked, but couldn't update seat. Please contact support.");
+          const results = await Promise.all(confirmationPromises);
+          const allSuccessful = results.every(res => res.ok);
+
+          if (allSuccessful) {
+            await onSuccess(); 
+          } else {
+            setErrorMessage("Payment worked, but some seats couldn't be updated.");
+          }
+        } catch (confirmErr) {
+          setErrorMessage("Connection lost after payment. Please check your Booking History.");
         }
       }
     } catch (err: any) {
@@ -71,7 +79,6 @@ export function CheckoutForm({ onSuccess, amount, bookingId }: CheckoutFormProps
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* ... keeping your existing JSX exactly the same ... */}
       <div className="bg-[#0f1115] p-4 rounded-xl border border-white/10 ring-1 ring-white/5">
         <CardElement 
           options={{
@@ -82,7 +89,7 @@ export function CheckoutForm({ onSuccess, amount, bookingId }: CheckoutFormProps
                 fontFamily: 'Inter, sans-serif',
                 '::placeholder': { color: '#6b7280' },
               },
-              invalid: { color: '#ef4444' }, // Red for actual errors
+              invalid: { color: '#ef4444' },
             },
           }} 
         />
