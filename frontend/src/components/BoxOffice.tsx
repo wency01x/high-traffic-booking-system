@@ -20,7 +20,7 @@ export function BoxOffice({ seats, cart, onSeatClick }: BoxOfficeProps) {
       <div className="relative w-full pb-8 flex justify-center">
         <div className="grid gap-1.5 min-[375px]:gap-2 sm:gap-4 md:gap-5 w-full max-w-2xl" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr)) clamp(12px, 4vw, 24px) repeat(4, minmax(0, 1fr))' }}>
           {seats.map((seat, index) => {
-            const isCartSeat = cart?.seatId === seat.id;
+            const isCartSeat = cart?.seatIds?.includes(seat.id);
             
             let btnClass = 'w-full aspect-square flex items-center justify-center font-mono text-[9px] min-[375px]:text-[10px] sm:text-xs md:text-sm rounded-t min-[375px]:rounded-t-lg transition-all duration-300 border relative group overflow-hidden focus:outline-none ';
             let content = null;
