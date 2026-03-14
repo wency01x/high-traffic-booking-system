@@ -27,7 +27,7 @@ export function MyTickets({ cart, history, onRelease, onPaymentSuccess, onGoToBo
       const diff = cart.endTime - Date.now();
       if (diff <= 0) {
         clearInterval(timer);
-        onRelease(); // Auto release handled by context/parent usually, or we can just call onRelease here
+        onRelease(); 
       } else {
         const m = Math.floor(diff / 60000);
         const s = Math.floor((diff % 60000) / 1000);
@@ -53,7 +53,10 @@ export function MyTickets({ cart, history, onRelease, onPaymentSuccess, onGoToBo
                 </div>
                 <div>
                   <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-widest font-medium mb-0.5 sm:mb-1">Pending Ticket</p>
-                  <p className="text-lg sm:text-xl font-mono text-emerald-400 font-medium leading-none">Seat {cart.seatId}</p>
+                  {/* 👇 THIS IS THE FIX FOR THE SQUISHED SEATS 👇 */}
+                  <p className="text-lg sm:text-xl font-mono text-emerald-400 font-medium leading-none">
+                    Seats: {cart.seatIds.join(', ')}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center justify-center gap-3 bg-[#111] px-4 sm:px-5 py-4 sm:py-5 rounded-sm border border-amber-500/20 shadow-[inset_0_0_20px_rgba(245,158,11,0.05)] mb-2 relative overflow-hidden">
@@ -78,16 +81,15 @@ export function MyTickets({ cart, history, onRelease, onPaymentSuccess, onGoToBo
                   className="w-full bg-[#111] border border-white/10 hover:border-white/20 rounded-sm px-4 py-3 text-sm text-white focus:border-emerald-500/50 outline-none transition-all placeholder:text-gray-600"
                 />
               </div>
-              {/* END */}
+              
               <div className="mt-6 flex flex-col gap-4">
                 {/* Stripe Payment Form */}
                 <CheckoutForm 
-                  amount={15} 
-                  bookingId={cart.bookingId}
+                  bookingIds={cart.bookingIds} 
+                  amount={cart.seatIds.length * 15}
                   onSuccess={onPaymentSuccess} 
                 />
 
-                {/* Release Button moved below as a secondary option */}
                 <button 
                   onClick={() => onRelease()} 
                   className="w-full py-2 text-gray-500 hover:text-rose-400 transition-colors text-[10px] uppercase tracking-widest font-medium"
