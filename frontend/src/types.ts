@@ -8,9 +8,9 @@ export interface Seat {
 }
 
 export interface CartItem {
-  seatId: string;
+  seatIds: string[];
   endTime: number;
-  bookingId: number;
+  bookingIds: number[];
 }
 
 export interface HistoryItem {
@@ -25,4 +25,11 @@ export interface ToastMessage {
   type: 'success' | 'danger';
   title: string;
   message: string;
+}
+
+
+interface ConfirmModalProps {
+  isOpen: boolean;
+  seatIds: string[];
+  // ...
 }
