@@ -2,7 +2,7 @@
 
 A full-stack, high-concurrency event ticketing platform designed to handle real-time movie theater seat reservations. Built to withstand race conditions and double-booking attempts using production-ready system design principles.
 
-## 📸 Application Flow & Interface
+## Application Flow & Interface
 
 ### 1. The Box Office
 Users start by viewing the live theater grid. The UI dynamically reflects real-time database states (`Available`, `Selected`, `On Hold`, `Booked`).
@@ -38,7 +38,7 @@ Transactions are securely verified and processed via the Stripe API.
 
 ### 9. System Admin Panel
 A protected "God-mode" dashboard allowing administrators to provision new users and dynamically map out or reset theater seats. 
-> 🚧 **Note:** The Admin Panel is currently under active development. While the foundation can be seen when cloning the repository, full routing and functionality are still a Work in Progress (WIP).
+> **Note:** The Admin Panel is currently under active development. While the foundation can be seen when cloning the repository, full routing and functionality are still a Work in Progress (WIP).
 ![Admin Panel](frontend/src/assets/docs/admin-panel.png)
 
 ---
