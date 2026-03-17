@@ -39,13 +39,19 @@ export function BoxOffice({ seats, cart, onSeatClick }: BoxOfficeProps) {
             } else if (seat.status === 'booked') {
               btnClass += 'border-rose-500/20 text-rose-500/40 bg-rose-500/5 cursor-not-allowed';
               content = <><span className="opacity-40 z-10">{seat.id}</span><div className="absolute inset-0 flex items-center justify-center"><div className="w-full h-px bg-rose-500/30 rotate-45"></div></div></>;
+            } 
+            // 👇 NEW: This handles the glowing green selected seats! 👇
+            else if (seat.status === 'selected') {
+              btnClass += 'bg-emerald-500/20 border-emerald-400 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.4)] cursor-pointer -translate-y-0.5 sm:-translate-y-1 font-bold';
+              content = <span className="relative z-10">{seat.id}</span>;
             }
 
             return (
               <React.Fragment key={seat.id}>
                 <button 
                   className={btnClass} 
-                  onClick={() => seat.status === 'available' ? onSeatClick(seat.id) : undefined}
+                  // 👇 NEW: Allow clicking on both 'available' AND 'selected' seats (to unselect them)
+                  onClick={() => (seat.status === 'available' || seat.status === 'selected') ? onSeatClick(seat.id) : undefined}
                 >
                   {content}
                 </button>
@@ -63,6 +69,13 @@ export function BoxOffice({ seats, cart, onSeatClick }: BoxOfficeProps) {
           <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-t-sm border border-emerald-500/30 bg-emerald-500/5"></div>
           <span className="text-[10px] sm:text-xs font-medium text-gray-400">Available</span>
         </div>
+        
+        {/* 👇 NEW: Added the Selected state to the Legend so users know what it means! 👇 */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-t-sm border border-emerald-400 bg-emerald-500/20 shadow-[0_0_10px_rgba(52,211,153,0.3)]"></div>
+          <span className="text-[10px] sm:text-xs font-medium text-emerald-400">Selected</span>
+        </div>
+
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-t-sm border border-amber-500/50 bg-amber-500/10 relative overflow-hidden">
             <div className="absolute inset-0 bg-amber-500/20 animate-pulse"></div>
