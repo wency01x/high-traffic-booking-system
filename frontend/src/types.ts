@@ -1,6 +1,6 @@
 
 
-export type SeatStatus = 'available' | 'pending' | 'booked';
+export type SeatStatus = 'available' | 'pending' | 'booked' | 'selected';
 
 export interface Seat {
   id: string;
@@ -25,11 +25,4 @@ export interface ToastMessage {
   type: 'success' | 'danger';
   title: string;
   message: string;
-}
-
-
-interface ConfirmModalProps {
-  isOpen: boolean;
-  seatIds: string[];
-  // ...
 }
