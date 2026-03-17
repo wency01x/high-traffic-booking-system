@@ -2,6 +2,15 @@
 
 A full-stack, high-concurrency event ticketing platform designed to handle real-time movie theater seat reservations. Built to withstand race conditions and double-booking attempts using production-ready system design principles.
 
+## System Architecture & Design
+This project implements a modern **Three-Tier Architecture** (Client -> API -> Database) and tackles complex distributed system challenges:
+
+* **Concurrency Control (Pessimistic Locking):** When a user selects a seat, the system immediately locks it with a `PENDING` status. This strictly prevents any other user from interacting with or booking that specific seat during the checkout phase.
+* **State Management & Timers:** Tickets are held in the user's cart for a strict 5-minute checkout window before expiring.
+* **Asynchronous Background Worker (Cleaner):** A parallel `asyncio` task continuously polls the PostgreSQL database to detect abandoned carts. It automatically releases expired seats back to the `AVAILABLE` pool without blocking or slowing down the main API loop.
+
+---
+
 ## Application Flow & Interface
 
 ### 1. The Box Office
@@ -42,13 +51,6 @@ A protected "God-mode" dashboard allowing administrators to provision new users 
 ![Admin Panel](frontend/src/assets/docs/admin-panel.png)
 
 ---
-
-## System Architecture & Design
-This project implements a modern **Three-Tier Architecture** (Client -> API -> Database) and tackles complex distributed system challenges:
-
-* **Concurrency Control (Pessimistic Locking):** When a user selects a seat, the system immediately locks it with a `PENDING` status. This strictly prevents any other user from interacting with or booking that specific seat during the checkout phase.
-* **State Management & Timers:** Tickets are held in the user's cart for a strict 5-minute checkout window before expiring.
-* **Asynchronous Background Worker (Cleaner):** A parallel `asyncio` task continuously polls the PostgreSQL database to detect abandoned carts. It automatically releases expired seats back to the `AVAILABLE` pool without blocking or slowing down the main API loop.
 
 ## Tech Stack
 
@@ -92,4 +94,4 @@ venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 
 # Start the FastAPI server (runs on Port 8001)
-uvicorn app.main:app --reload --port 8001<img width="1447" height="627" alt="image" src="https://github.com/user-attachments/assets/c5fa173e-b237-422d-9f0b-5a8447769d7d" />
+uvicorn app.main:app --reload --port 8001
