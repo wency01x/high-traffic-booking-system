@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { CartItem, HistoryItem } from '../types';
-import { CheckoutForm } from './CheckOutForm';
+import { CheckoutForm } from './CheckoutForm'
 
 interface MyTicketsProps {
   cart: CartItem | null;
