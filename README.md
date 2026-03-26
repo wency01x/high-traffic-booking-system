@@ -77,7 +77,7 @@ A protected "God-mode" dashboard allowing administrators to provision new users 
 ### Prerequisites
 * Python 3.10+
 * Node.js & npm
-* PostgreSQL running locally
+* PostgreSQL running (locally for now)
 
 ### 1. Start the Backend API
 Open your first terminal and run the following commands:
