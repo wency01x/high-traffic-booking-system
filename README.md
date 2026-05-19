@@ -5,7 +5,7 @@ A full-stack, high-concurrency event ticketing platform designed to handle real-
 ## System Architecture & Design
 This project implements a modern **Three-Tier Architecture** (Client -> API -> Database) and tackles complex distributed system challenges:
 
-* **Concurrency Control (Pessimistic Locking):** When a user selects a seat, the system immediately locks it with a `PENDING` status. This strictly prevents any other user from interacting with or booking that specific seat during the checkout phase.
+* **Concurrency Control (Pessimistic Locking):** When a user selects a seat, the system immediately locks it with a `PENDING` status. This strictly prevents any other user from interacting with or booking that specific seat during the checkout phase
 * **State Management & Timers:** Tickets are held in the user's cart for a strict 5-minute checkout window before expiring.
 * **Asynchronous Background Worker (Cleaner):** A parallel `asyncio` task continuously polls the PostgreSQL database to detect abandoned carts. It automatically releases expired seats back to the `AVAILABLE` pool without blocking or slowing down the main API loop.
 
