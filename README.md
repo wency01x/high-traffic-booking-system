@@ -1,6 +1,6 @@
 # VIP Booking System
 
-A full-stack, high-concurrency event ticketing platform designed to handle real-time movie theater seat reservations. Built to withstand race conditions and double-booking attempts using production-ready system design principles.
+A full-stack, high-concurrency event ticketing platform designed to handle real-time movie theater seat reservations. Built to withstand race conditions and double-booking attempts using production-ready system design principles
 
 ## System Architecture & Design
 This project implements a modern **Three-Tier Architecture** (Client -> API -> Database) and tackles complex distributed system challenges:
